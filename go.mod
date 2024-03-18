@@ -1,4 +1,3 @@
 module github.com/ellielle/godexcli
 
-go 1.22.0
-
+go 1.22.1
