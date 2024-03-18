@@ -18,11 +18,11 @@ type PokeResponse struct {
 }
 
 // Retrieves 20 results from the location area section of the PokeAPI
-func PokeMapMove(apiUrl string) (PokeResponse, error) {
+func PokeMapMove(apiUrl *string) (PokeResponse, error) {
 	var res *http.Response
 	var err error
 
-	res, err = http.Get(apiUrl)
+	res, err = http.Get(*apiUrl)
 
 	decoder := json.NewDecoder(res.Body)
 	pokeMap := PokeResponse{}

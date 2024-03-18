@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	pokeapi "github.com/ellielle/godex/internal/pokeapi"
+	"github.com/ellielle/godex/internal/pokeapi"
 )
-
-const PokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
 type cliCommand struct {
 	name        string
@@ -18,6 +16,7 @@ type cliCommand struct {
 type PokeMap struct {
 	Next     *string `json:"next"`
 	Previous *string `json:"previous"`
+	Base     string  `json:"-"`
 }
 
 // Displays all command information when 'help' is entered
@@ -44,9 +43,9 @@ func (cfg *PokeMap) commandMap() error {
 	var pokeMap pokeapi.PokeResponse
 
 	if cfg.Next != nil {
-		pokeMap, err = pokeapi.PokeMapForwards(cfg.Next)
+		pokeMap, err = pokeapi.PokeMapMove(cfg.Next)
 	} else {
-		pokeMap, err = pokeapi.PokeMapForwards(PokeAPIURL)
+		pokeMap, err = pokeapi.PokeMapMove(&cfg.Base)
 	}
 	if err != nil {
 		return err
@@ -68,9 +67,9 @@ func (cfg *PokeMap) commandMapBack() error {
 	var pokeMap pokeapi.PokeResponse
 
 	if cfg.Previous != nil {
-		pokeMap, err = pokeapi.PokeMapBackwards(cfg.Previous)
+		pokeMap, err = pokeapi.PokeMapMove(cfg.Previous)
 	} else {
-		pokeMap, err = pokeapi.PokeMapBackwards(PokeAPIURL)
+		fmt.Println("There are no previous regions to display!")
 	}
 	if err != nil {
 		return err
@@ -86,7 +85,7 @@ func (cfg *PokeMap) commandMapBack() error {
 	return nil
 }
 
-func getCliCommands(cfg *pokeapi.PokeMap) map[string]cliCommand {
+func getCliCommands(cfg *PokeMap) map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",

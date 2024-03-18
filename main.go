@@ -4,16 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-
-	"github.com/ellielle/godex/internal/pokeapi"
 )
+
+const pokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	prefix := "godex > "
-	cliDirections := pokeapi.PokeMap{
+
+	cliDirections := PokeMap{
 		Next:     nil,
 		Previous: nil,
+		Base:     pokeAPIURL,
 	}
 	cliCommands := getCliCommands(&cliDirections)
 
