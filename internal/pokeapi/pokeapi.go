@@ -2,6 +2,7 @@ package pokeapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -18,11 +19,36 @@ type PokeResponse struct {
 }
 
 // Retrieves 20 results from the location area section of the PokeAPI
-func PokeMapMove(apiUrl *string) (PokeResponse, error) {
+func PokeMapNext(apiUrl string, next *string) (PokeResponse, error) {
 	var res *http.Response
 	var err error
 
-	res, err = http.Get(*apiUrl)
+	if next != nil {
+		res, err = http.Get(*next)
+	} else {
+		res, err = http.Get(apiUrl)
+	}
+
+	decoder := json.NewDecoder(res.Body)
+	pokeMap := PokeResponse{}
+	err = decoder.Decode(&pokeMap)
+	if err != nil {
+		return PokeResponse{}, err
+	}
+
+	return pokeMap, nil
+}
+
+func PokeMapPrevious(previous *string) (PokeResponse, error) {
+	var res *http.Response
+	var err error
+
+	if previous != nil {
+		res, err = http.Get(*previous)
+	} else {
+		fmt.Println("There are no previous regions to display!")
+		return PokeResponse{}, nil
+	}
 
 	decoder := json.NewDecoder(res.Body)
 	pokeMap := PokeResponse{}

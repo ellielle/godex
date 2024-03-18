@@ -39,16 +39,9 @@ func (cfg *PokeMap) commandExit() error {
 
 // Retrieves the first or next 20 regions from the PokemonAPI
 func (cfg *PokeMap) commandMap() error {
-	var err error
-	var pokeMap pokeapi.PokeResponse
-
-	if cfg.Next != nil {
-		pokeMap, err = pokeapi.PokeMapMove(cfg.Next)
-	} else {
-		pokeMap, err = pokeapi.PokeMapMove(&cfg.Base)
-	}
+	pokeMap, err := pokeapi.PokeMapNext(cfg.Base, cfg.Next)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	cfg.Next = pokeMap.Next
@@ -63,14 +56,7 @@ func (cfg *PokeMap) commandMap() error {
 
 // Retrieves the previous 20 regions from the PokemonAPI
 func (cfg *PokeMap) commandMapBack() error {
-	var err error
-	var pokeMap pokeapi.PokeResponse
-
-	if cfg.Previous != nil {
-		pokeMap, err = pokeapi.PokeMapMove(cfg.Previous)
-	} else {
-		fmt.Println("There are no previous regions to display!")
-	}
+	pokeMap, err := pokeapi.PokeMapPrevious(cfg.Previous)
 	if err != nil {
 		return err
 	}
