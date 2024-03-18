@@ -28,6 +28,7 @@ func PokeMapNext(apiUrl string, next *string) (PokeResponse, error) {
 	} else {
 		res, err = http.Get(apiUrl)
 	}
+	defer res.Body.Close()
 
 	decoder := json.NewDecoder(res.Body)
 	pokeMap := PokeResponse{}
@@ -49,6 +50,7 @@ func PokeMapPrevious(previous *string) (PokeResponse, error) {
 		fmt.Println("There are no previous regions to display!")
 		return PokeResponse{}, nil
 	}
+	defer res.Body.Close()
 
 	decoder := json.NewDecoder(res.Body)
 	pokeMap := PokeResponse{}
