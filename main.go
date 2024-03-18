@@ -2,10 +2,13 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 )
+
+const PokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
 type cliCommand struct {
 	name        string
@@ -13,13 +16,11 @@ type cliCommand struct {
 	callback    func() error
 }
 
-type Config struct {
+type PokeMap struct {
 	Next     *string `json:"next"`
 	Previous *string `json:"previous"`
 }
 
-// TODO: PokeResponse will be used in the API fetch JSON marshaling
-// TODO: may or may not need the separate Config struct?
 type PokeResponse struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
@@ -30,10 +31,8 @@ type PokeResponse struct {
 	} `json:"results"`
 }
 
-const PokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
-
 // Displays all command information when 'help' is entered
-func (cfg *Config) commandHelp() error {
+func (cfg *PokeMap) commandHelp() error {
 	commands := getCliCommands(cfg)
 	fmt.Println("Usage:")
 	for _, info := range commands {
@@ -45,29 +44,68 @@ func (cfg *Config) commandHelp() error {
 }
 
 // Exits the program when 'exit' is entered
-func (cfg *Config) commandExit() error {
+func (cfg *PokeMap) commandExit() error {
 	os.Exit(0)
 	return nil
 }
 
 // Retrieves the first or next 20 regions from the PokemonAPI
-func (cfg *Config) commandMap() error {
-	//  response := Config{}
-	res, err := http.Get(PokeAPIURL)
-	fmt.Printf("RESPONSE: %v", res)
+func (cfg *PokeMap) commandMap() error {
+	var res *http.Response
+	var err error
+	if cfg.Next != nil {
+		res, err = http.Get(*cfg.Next)
+	} else {
+		res, err = http.Get(PokeAPIURL)
+	}
 	if err != nil {
 		return err
+	}
+
+	decoder := json.NewDecoder(res.Body)
+	pokeMap := PokeResponse{}
+	err = decoder.Decode(&pokeMap)
+	if err != nil {
+		return err
+	}
+	cfg.Next = pokeMap.Next
+	cfg.Previous = pokeMap.Previous
+
+	for _, result := range pokeMap.Results {
+		fmt.Println(result.Name)
 	}
 
 	return nil
 }
 
 // Retrieves the previous 20 regions from the PokemonAPI
-func (cfg *Config) commandMapBack() error {
+func (cfg *PokeMap) commandMapBack() error {
+	var res *http.Response
+	var err error
+	if cfg.Previous != nil {
+		res, err = http.Get(*cfg.Previous)
+	} else {
+		fmt.Println("You haven't gone anywhere yet!")
+		return nil
+	}
+
+	decoder := json.NewDecoder(res.Body)
+	pokeMap := PokeResponse{}
+	err = decoder.Decode(&pokeMap)
+	if err != nil {
+		return err
+	}
+	cfg.Next = pokeMap.Next
+	cfg.Previous = pokeMap.Previous
+
+	for _, result := range pokeMap.Results {
+		fmt.Println(result.Name)
+	}
+
 	return nil
 }
 
-func getCliCommands(cfg *Config) map[string]cliCommand {
+func getCliCommands(cfg *PokeMap) map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",
@@ -95,11 +133,11 @@ func getCliCommands(cfg *Config) map[string]cliCommand {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	prefix := "godex > "
-	cliConfig := Config{
+	cliDirections := PokeMap{
 		Next:     nil,
 		Previous: nil,
 	}
-	cliCommands := getCliCommands(&cliConfig)
+	cliCommands := getCliCommands(&cliDirections)
 
 	fmt.Println("Welcome to Godex, a CLI Pokedex in Go!")
 
