@@ -19,7 +19,7 @@ type PokeResponse struct {
 }
 
 // Retrieves 20 results from the location area section of the PokeAPI
-func PokeMapNext(apiUrl string, next *string) (PokeResponse, error) {
+func (c *Client) PokeMapNext(apiUrl string, next *string) (PokeResponse, error) {
 	var res *http.Response
 	var err error
 
