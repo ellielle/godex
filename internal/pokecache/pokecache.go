@@ -1,6 +1,7 @@
 package pokecache
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -16,23 +17,20 @@ type Cache struct {
 	Interval time.Duration
 }
 
-type handleCache interface {
-	setCacheInterval(interval time.Duration) *Cache
-	Add(key string, val []byte)
-	Get(key string) ([]byte, bool)
-}
-
 func NewCache(interval time.Duration) *Cache {
 	var cacheMap map[string]cacheEntry
 	cache := &Cache{
-		Entries: cacheMap,
-		Mu:      &sync.RWMutex{},
+		Entries:  cacheMap,
+		Mu:       &sync.RWMutex{},
+		Interval: interval,
 	}
-	cache.setCacheInterval(interval)
+	// cache.reapLoop(interval)
 
+	log.Printf("Cache created! %v\v", cacheMap)
 	return cache
 }
 
+// BUG: failure here in test
 // Adds an entry to the Cache
 func (ca *Cache) Add(key string, val []byte) {
 	ca.Mu.Lock()
@@ -42,6 +40,7 @@ func (ca *Cache) Add(key string, val []byte) {
 		createdAt: time.Now(),
 		val:       val,
 	}
+	log.Print("Entry added!\n")
 }
 
 // Searches the Cache for a page
@@ -58,11 +57,15 @@ func (ca *Cache) Get(key string) ([]byte, bool) {
 	return entry.val, true
 }
 
-// When triggered, it will remove entries older than the Cache interval
-func (ca *Cache) reapLoop() {}
+// Reaps entries older than Cache Interval after each Interval has passed
+func (ca *Cache) reapLoop(interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
-func (ca *Cache) setCacheInterval(interval time.Duration) {
-	ca.Mu.Lock()
-	defer ca.Mu.Unlock()
-	ca.Interval = interval
+	<-ticker.C
+	for name, entry := range ca.Entries {
+		if entry.createdAt.After(time.Now().Add(ca.Interval)) {
+			delete(ca.Entries, name)
+		}
+	}
 }
