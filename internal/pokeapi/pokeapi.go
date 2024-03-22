@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type PokeResponse struct {
+type LocationResponse struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
 	Previous *string `json:"previous"`
@@ -16,19 +16,68 @@ type PokeResponse struct {
 	} `json:"results"`
 }
 
+type PokeResponse struct {
+	PokemonEncounters []struct {
+		Pokemon struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"pokemon"`
+	} `json:"pokemon_encounters"`
+}
+
 // Retrieves 20 results from either the Next, or if available, Previous locations URL
-func (c *Client) ListMapLocations(apiURL string) (PokeResponse, error) {
-	var err error
+func (c *Client) ListMapLocations(apiURL string) (LocationResponse, error) {
+	locationResp := LocationResponse{}
 
 	// Check for an entry in the cache before requesting
 	val, ok := c.cache.Get(apiURL)
 	if ok {
-		locationResp := PokeResponse{}
-		err = json.Unmarshal([]byte(val), &locationResp)
+		err := json.Unmarshal([]byte(val), &locationResp)
+		if err != nil {
+			return LocationResponse{}, err
+		}
+		return locationResp, nil
+	}
+
+	// Create a request
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return LocationResponse{}, err
+	}
+
+	// Make the request to the API
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return LocationResponse{}, err
+	}
+	defer resp.Body.Close()
+
+	// Read the response body, and then Unmarshal it into  LocationResponse
+	dat, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return LocationResponse{}, err
+	}
+
+	err = json.Unmarshal(dat, &locationResp)
+	if err != nil {
+		return LocationResponse{}, err
+	}
+
+	c.cache.Add(apiURL, dat)
+	return locationResp, nil
+}
+
+func (c *Client) ListPokemon(apiURL string) (PokeResponse, error) {
+	pokeResp := PokeResponse{}
+
+	// Check for an entry in the cache before requesting
+	val, ok := c.cache.Get(apiURL)
+	if ok {
+		err := json.Unmarshal([]byte(val), &pokeResp)
 		if err != nil {
 			return PokeResponse{}, err
 		}
-		return locationResp, nil
+		return pokeResp, nil
 	}
 
 	req, err := http.NewRequest("GET", apiURL, nil)
@@ -47,12 +96,11 @@ func (c *Client) ListMapLocations(apiURL string) (PokeResponse, error) {
 		return PokeResponse{}, err
 	}
 
-	locationResp := PokeResponse{}
-	err = json.Unmarshal(dat, &locationResp)
+	err = json.Unmarshal(dat, &pokeResp)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 
 	c.cache.Add(apiURL, dat)
-	return locationResp, nil
+	return pokeResp, nil
 }
