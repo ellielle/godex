@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	cliDirections := &PokeMap{
+	cliDirections := &MapConfig{
 		Next:     nil,
 		Previous: nil,
 		Client:   pokeapi.NewClient(5*time.Second, (60*5)*time.Second),

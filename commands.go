@@ -10,17 +10,17 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*PokeMap) error
+	callback    func(*MapConfig) error
 }
 
-type PokeMap struct {
+type MapConfig struct {
 	Next     *string
 	Previous *string
 	Client   pokeapi.Client
 }
 
 // Displays all command information when 'help' is entered
-func commandHelp(cfg *PokeMap) error {
+func commandHelp(cfg *MapConfig) error {
 	fmt.Println("Usage:")
 	for _, command := range getCliCommands() {
 		fmt.Printf("\n%v:  %v", command.name, command.description)
@@ -31,13 +31,13 @@ func commandHelp(cfg *PokeMap) error {
 }
 
 // Exits the program when 'exit' is entered
-func commandExit(cfg *PokeMap) error {
+func commandExit(cfg *MapConfig) error {
 	os.Exit(0)
 	return nil
 }
 
 // Retrieves the first or next 20 regions from the PokemonAPI
-func commandMap(cfg *PokeMap) error {
+func commandMap(cfg *MapConfig) error {
 	apiURL := pokeAPIURL
 	if cfg.Next != nil {
 		apiURL = *cfg.Next
@@ -58,7 +58,7 @@ func commandMap(cfg *PokeMap) error {
 }
 
 // Retrieves the previous 20 regions from the PokemonAPI
-func commandMapBack(cfg *PokeMap) error {
+func commandMapBack(cfg *MapConfig) error {
 	apiURL := pokeAPIURL
 	if cfg.Previous != nil {
 		apiURL = *cfg.Previous

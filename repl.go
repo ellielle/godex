@@ -9,7 +9,7 @@ import (
 
 const pokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
-func startREPL(cfg *PokeMap, cliCommands map[string]cliCommand) {
+func startREPL(cfg *MapConfig, cliCommands map[string]cliCommand) {
 	reader := bufio.NewScanner(os.Stdin)
 	prefix := "godex > "
 

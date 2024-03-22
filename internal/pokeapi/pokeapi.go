@@ -2,7 +2,6 @@ package pokeapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -24,7 +23,6 @@ func (c *Client) ListMapLocations(apiURL string) (PokeResponse, error) {
 	// Check for an entry in the cache before requesting
 	val, ok := c.cache.Get(apiURL)
 	if ok {
-		fmt.Print("\nUSING CACHE\n")
 		locationResp := PokeResponse{}
 		err = json.Unmarshal([]byte(val), &locationResp)
 		if err != nil {
@@ -55,5 +53,6 @@ func (c *Client) ListMapLocations(apiURL string) (PokeResponse, error) {
 		return PokeResponse{}, err
 	}
 
+	c.cache.Add(apiURL, dat)
 	return locationResp, nil
 }
