@@ -3,24 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/ellielle/godex/internal/pokeapi"
 )
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*MapConfig) error
-}
-
-type MapConfig struct {
-	Next     *string
-	Previous *string
-	Client   pokeapi.Client
+	callback    func(*MapConfig, []string) error
 }
 
 // Displays all command information when 'help' is entered
-func commandHelp(cfg *MapConfig) error {
+func commandHelp(cfg *MapConfig, cmd []string) error {
 	fmt.Println("Usage:")
 	for _, command := range getCliCommands() {
 		fmt.Printf("\n%v:  %v", command.name, command.description)
@@ -31,64 +23,12 @@ func commandHelp(cfg *MapConfig) error {
 }
 
 // Exits the program when 'exit' is entered
-func commandExit(cfg *MapConfig) error {
+func commandExit(cfg *MapConfig, cmd []string) error {
 	os.Exit(0)
 	return nil
 }
 
-// Retrieves the first or next 20 regions from the PokemonAPI
-func commandMap(cfg *MapConfig) error {
-	apiURL := pokeAPIURL
-	if cfg.Next != nil {
-		apiURL = *cfg.Next
-	}
-	pokeMap, err := cfg.Client.ListMapLocations(apiURL)
-	if err != nil {
-		return nil
-	}
-
-	cfg.Next = pokeMap.Next
-	cfg.Previous = pokeMap.Previous
-
-	fmt.Println("")
-	for _, result := range pokeMap.Results {
-		fmt.Println(result.Name)
-	}
-	fmt.Println("")
-
-	return nil
-}
-
-// Retrieves the previous 20 regions from the PokemonAPI
-func commandMapBack(cfg *MapConfig) error {
-	apiURL := pokeAPIURL
-
-	// Print an error letting the user know there are no previous locations yet
-	if cfg.Previous == nil {
-		fmt.Println("")
-		fmt.Println("There are no previous regions to display!")
-		fmt.Println("")
-		return nil
-	}
-
-	apiURL = *cfg.Previous
-	pokeMap, err := cfg.Client.ListMapLocations(apiURL)
-	if err != nil {
-		return err
-	}
-
-	cfg.Next = pokeMap.Next
-	cfg.Previous = pokeMap.Previous
-
-	fmt.Println("")
-	for _, result := range pokeMap.Results {
-		fmt.Println(result.Name)
-	}
-	fmt.Println("")
-
-	return nil
-}
-
+// Return CLI commands as a map so a command can be accessed by name
 func getCliCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
@@ -110,6 +50,11 @@ func getCliCommands() map[string]cliCommand {
 			name:        "map back",
 			description: "shows the previous 20 regions",
 			callback:    commandMapBack,
+		},
+		"explore": {
+			name:        "explore map",
+			description: "explores user-specified map",
+			callback:    commandExplore,
 		},
 	}
 }
