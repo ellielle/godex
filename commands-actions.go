@@ -56,7 +56,8 @@ func commandCatch(cfg *MapConfig, cmd []string) error {
 	baseEXP := pokemon.BaseExperience
 	captureRoll := rand.Intn(baseEXP)
 
-	// NOTE: temporary capture formula
+	// Most non-trivial pokemon have a base exp over 50, making this a simple way to
+	// base the capture rate on their base exp
 	if captureRoll < 50 {
 		fmt.Printf("%s was caught!\n", pokemon.Name)
 		fmt.Println("")
@@ -99,11 +100,11 @@ func printStats(pokemon *pokedex.Pokemon) {
 	fmt.Println("")
 	fmt.Println("\nStats:")
 	for _, stats := range pokemon.Stats {
-		fmt.Printf("%s: %v\n", stats.Stat.Name, stats.BaseStat)
+		fmt.Printf(" - %s: %v\n", stats.Stat.Name, stats.BaseStat)
 	}
 	fmt.Println("\nTypes:")
 	for _, types := range pokemon.Types {
-		fmt.Printf("%s\n", types.Type.Name)
+		fmt.Printf(" - %s\n", types.Type.Name)
 	}
 	fmt.Println("")
 }
