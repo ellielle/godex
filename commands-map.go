@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	"github.com/ellielle/godex/internal/pokeapi"
+	"github.com/ellielle/godex/internal/pokedex"
 )
 
 type MapConfig struct {
 	Next     *string
 	Previous *string
 	Client   pokeapi.Client
+	Pokedex  pokedex.Pokedex
 }
 
 // Retrieves the first or next 20 regions from the PokemonAPI
