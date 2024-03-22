@@ -15,7 +15,7 @@ type cliCommand struct {
 func commandHelp(cfg *MapConfig, cmd []string) error {
 	fmt.Println("Usage:")
 	for _, command := range getCliCommands() {
-		fmt.Printf("\n%v:\t\t%v", command.name, command.description)
+		fmt.Printf("\n%-20v %v", command.name, command.description)
 	}
 	fmt.Print("\n\n")
 
