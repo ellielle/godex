@@ -10,21 +10,20 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*PokeMap) error
 }
 
 type PokeMap struct {
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"`
-	Base     string  `json:"-"`
+	Next     *string
+	Previous *string
+	Client   pokeapi.Client
 }
 
 // Displays all command information when 'help' is entered
-func (cfg *PokeMap) commandHelp() error {
-	commands := getCliCommands(cfg)
+func commandHelp(cfg *PokeMap) error {
 	fmt.Println("Usage:")
-	for _, info := range commands {
-		fmt.Printf("\n%v:  %v", info.name, info.description)
+	for _, command := range getCliCommands() {
+		fmt.Printf("\n%v:  %v", command.name, command.description)
 	}
 	fmt.Print("\n\n")
 
@@ -32,14 +31,18 @@ func (cfg *PokeMap) commandHelp() error {
 }
 
 // Exits the program when 'exit' is entered
-func (cfg *PokeMap) commandExit() error {
+func commandExit(cfg *PokeMap) error {
 	os.Exit(0)
 	return nil
 }
 
 // Retrieves the first or next 20 regions from the PokemonAPI
-func (cfg *PokeMap) commandMap() error {
-	pokeMap, err := pokeapi.PokeMapNext(cfg.Base, cfg.Next)
+func commandMap(cfg *PokeMap) error {
+	apiURL := pokeAPIURL
+	if cfg.Next != nil {
+		apiURL = *cfg.Next
+	}
+	pokeMap, err := cfg.Client.ListMapLocations(apiURL)
 	if err != nil {
 		return nil
 	}
@@ -55,9 +58,14 @@ func (cfg *PokeMap) commandMap() error {
 }
 
 // Retrieves the previous 20 regions from the PokemonAPI
-func (cfg *PokeMap) commandMapBack() error {
-	pokeMap, err := pokeapi.PokeMapPrevious(cfg.Previous)
+func commandMapBack(cfg *PokeMap) error {
+	apiURL := pokeAPIURL
+	if cfg.Previous != nil {
+		apiURL = *cfg.Previous
+	}
+	pokeMap, err := cfg.Client.ListMapLocations(apiURL)
 	if err != nil {
+		fmt.Println("There are no previous regions to display!")
 		return err
 	}
 
@@ -71,27 +79,27 @@ func (cfg *PokeMap) commandMapBack() error {
 	return nil
 }
 
-func getCliCommands(cfg *PokeMap) map[string]cliCommand {
+func getCliCommands() map[string]cliCommand {
 	return map[string]cliCommand{
 		"help": {
 			name:        "help",
 			description: "display a help list for commands",
-			callback:    cfg.commandHelp,
+			callback:    commandHelp,
 		},
 		"exit": {
 			name:        "exit",
 			description: "exit the Pokedex",
-			callback:    cfg.commandExit,
+			callback:    commandExit,
 		},
 		"map": {
 			name:        "map",
 			description: "shows 20 regions from the Pokemon world",
-			callback:    cfg.commandMap,
+			callback:    commandMap,
 		},
 		"mapb": {
 			name:        "map back",
 			description: "shows the previous 20 regions",
-			callback:    cfg.commandMapBack,
+			callback:    commandMapBack,
 		},
 	}
 }

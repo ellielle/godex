@@ -9,30 +9,31 @@ import (
 
 const pokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
-func startREPL(cliCommands map[string]cliCommand) {
-	scanner := bufio.NewScanner(os.Stdin)
+func startREPL(cfg *PokeMap, cliCommands map[string]cliCommand) {
+	reader := bufio.NewScanner(os.Stdin)
 	prefix := "godex > "
 
 	// Continue prompting until the user enters "exit"
-	for scanner.Text() != "exit" {
+	for reader.Text() != "exit" {
 		fmt.Print(prefix)
-		scanner.Scan()
+		reader.Scan()
+		input := sanitizeInput(reader.Text())
+		commandName := input[0]
 		// Check for the entered command in the command list
-		command, ok := cliCommands[scanner.Text()]
+		command, ok := cliCommands[commandName]
 		if !ok {
-			fmt.Printf("%v is not a valid command\n", scanner.Text())
+			fmt.Printf("%v is not a valid command\n", reader.Text())
 			continue
 		}
-		command.callback()
+		command.callback(cfg)
 	}
-	if err := scanner.Err(); err != nil {
+	if err := reader.Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "reading stdin: ", err)
 	}
 }
 
 func sanitizeInput(input string) []string {
 	output := strings.Trim(input, " ")
-	// FIXME: strings.Fields - look up
-	words := strings.Fields(output)
+	words := strings.Fields(strings.ToLower(output))
 	return words
 }

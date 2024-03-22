@@ -3,10 +3,9 @@ package pokeapi
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
-
-const PokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
 
 type PokeResponse struct {
 	Count    int     `json:"count"`
@@ -18,46 +17,43 @@ type PokeResponse struct {
 	} `json:"results"`
 }
 
-// Retrieves 20 results from the location area section of the PokeAPI
-func (c *Client) PokeMapNext(apiUrl string, next *string) (PokeResponse, error) {
-	var res *http.Response
+// Retrieves 20 results from either the Next, or if available, Previous locations URL
+func (c *Client) ListMapLocations(apiURL string) (PokeResponse, error) {
 	var err error
 
-	if next != nil {
-		res, err = http.Get(*next)
-	} else {
-		res, err = http.Get(apiUrl)
+	// Check for an entry in the cache before requesting
+	val, ok := c.cache.Get(apiURL)
+	if ok {
+		fmt.Print("\nUSING CACHE\n")
+		locationResp := PokeResponse{}
+		err = json.Unmarshal([]byte(val), &locationResp)
+		if err != nil {
+			return PokeResponse{}, err
+		}
+		return locationResp, nil
 	}
-	defer res.Body.Close()
 
-	decoder := json.NewDecoder(res.Body)
-	pokeMap := PokeResponse{}
-	err = decoder.Decode(&pokeMap)
+	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 
-	return pokeMap, nil
-}
-
-func PokeMapPrevious(previous *string) (PokeResponse, error) {
-	var res *http.Response
-	var err error
-
-	if previous != nil {
-		res, err = http.Get(*previous)
-	} else {
-		fmt.Println("There are no previous regions to display!")
-		return PokeResponse{}, nil
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return PokeResponse{}, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	decoder := json.NewDecoder(res.Body)
-	pokeMap := PokeResponse{}
-	err = decoder.Decode(&pokeMap)
+	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 
-	return pokeMap, nil
+	locationResp := PokeResponse{}
+	err = json.Unmarshal(dat, &locationResp)
+	if err != nil {
+		return PokeResponse{}, err
+	}
+
+	return locationResp, nil
 }

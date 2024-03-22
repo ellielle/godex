@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/ellielle/godex/internal/pokeapi"
 )
 
 func main() {
-	cliDirections := PokeMap{
+	cliDirections := &PokeMap{
 		Next:     nil,
 		Previous: nil,
-		Base:     pokeAPIURL,
+		Client:   pokeapi.NewClient(5*time.Second, (60*5)*time.Second),
 	}
-	cliCommands := getCliCommands(&cliDirections)
+	cliCommands := getCliCommands()
 	fmt.Println("Welcome to Godex, a CLI Pokedex in Go!")
-	startREPL(cliCommands)
+	startREPL(cliDirections, cliCommands)
 }
