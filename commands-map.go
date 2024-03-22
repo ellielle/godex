@@ -14,7 +14,7 @@ type MapConfig struct {
 
 // Retrieves the first or next 20 regions from the PokemonAPI
 func commandMap(cfg *MapConfig, cmd []string) error {
-	apiURL := pokeAPIURL
+	apiURL := locationAPIURL
 	if cfg.Next != nil {
 		apiURL = *cfg.Next
 	}
@@ -60,30 +60,5 @@ func commandMapBack(cfg *MapConfig, cmd []string) error {
 	}
 	fmt.Println("")
 
-	return nil
-}
-
-// Explore a specific region entered as a parameter to the "explore" command
-// Returns Pokemon able to be caught in that region
-func commandExplore(cfg *MapConfig, cmd []string) error {
-	if len(cmd) != 2 {
-		fmt.Println("You must enter a region to explore!")
-		return nil
-	}
-
-	// Append parameter to the URL to explore that region, throw an error if it fails
-	apiURL := pokeAPIURL + cmd[1]
-	pokemonList, err := cfg.Client.ListPokemon(apiURL)
-	if err != nil {
-		fmt.Println("Invalid region! Please try again.")
-		return err
-	}
-
-	// Print all pokemon in the region to the CLI
-	fmt.Println("")
-	for _, pk := range pokemonList.PokemonEncounters {
-		fmt.Println(pk.Pokemon.Name)
-	}
-	fmt.Println("")
 	return nil
 }
