@@ -41,13 +41,11 @@ func (c *Client) ListMapLocations(apiURL string) (LocationResponse, error) {
 		return locationResp, nil
 	}
 
-	// Create a request
+	// Create a request to the API and then send it
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return LocationResponse{}, err
 	}
-
-	// Make the request to the API
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return LocationResponse{}, err
@@ -60,11 +58,13 @@ func (c *Client) ListMapLocations(apiURL string) (LocationResponse, error) {
 		return LocationResponse{}, err
 	}
 
+	// Unmarshal JSON data into response struct
 	err = json.Unmarshal(dat, &locationResp)
 	if err != nil {
 		return LocationResponse{}, err
 	}
 
+	// Add URL and data to the cache
 	c.cache.Add(apiURL, &dat)
 	return locationResp, nil
 }
@@ -82,27 +82,30 @@ func (c *Client) ListPokemon(apiURL string) (PokeResponse, error) {
 		return pokeResp, nil
 	}
 
+	// Create a request to the API and then send it
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return PokeResponse{}, err
 	}
-
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 	defer resp.Body.Close()
 
+	// Read the body from the request
 	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 
+	// Unmarshal JSON data into response struct
 	err = json.Unmarshal(dat, &pokeResp)
 	if err != nil {
 		return PokeResponse{}, err
 	}
 
+	// Add URL and data to the cache
 	c.cache.Add(apiURL, &dat)
 	return pokeResp, nil
 }
@@ -120,27 +123,30 @@ func (c *Client) PokemonData(apiURL string) (pokedex.Pokemon, error) {
 		return pokeResp, nil
 	}
 
+	// Create a request to the API and then send it
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return pokedex.Pokemon{}, err
 	}
-
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return pokedex.Pokemon{}, err
 	}
 	defer resp.Body.Close()
 
+	// Read the body from the request
 	dat, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return pokedex.Pokemon{}, err
 	}
 
+	// Unmarshal JSON data into response struct
 	err = json.Unmarshal(dat, &pokeResp)
 	if err != nil {
 		return pokedex.Pokemon{}, err
 	}
 
+	// Add URL and data to the cache
 	c.cache.Add(apiURL, &dat)
 	return pokeResp, nil
 }

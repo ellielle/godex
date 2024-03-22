@@ -15,6 +15,7 @@ type Cache struct {
 	Mu      *sync.RWMutex
 }
 
+// Create a new cache for the session
 func NewCache(interval time.Duration) Cache {
 	cache := Cache{
 		Entries: make(map[string]cacheEntry),
@@ -47,7 +48,7 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	return entry.val, ok
 }
 
-// Reaps entries older than Cache Interval after each Interval has passed
+// Controls the loop for reaping old cache entries
 func (c *Cache) reapLoop(interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for range ticker.C {
@@ -56,6 +57,7 @@ func (c *Cache) reapLoop(interval time.Duration) {
 
 }
 
+// Reaps entries older than Cache Interval after each Interval has passed
 func (c *Cache) reap(now time.Time, last time.Duration) {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()

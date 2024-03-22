@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	// Prepare configuration
 	cliDirections := &MapConfig{
 		Next:     nil,
 		Previous: nil,
