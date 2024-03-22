@@ -50,9 +50,11 @@ func commandMap(cfg *MapConfig) error {
 	cfg.Next = pokeMap.Next
 	cfg.Previous = pokeMap.Previous
 
+	fmt.Println("")
 	for _, result := range pokeMap.Results {
 		fmt.Println(result.Name)
 	}
+	fmt.Println("")
 
 	return nil
 }
@@ -60,21 +62,29 @@ func commandMap(cfg *MapConfig) error {
 // Retrieves the previous 20 regions from the PokemonAPI
 func commandMapBack(cfg *MapConfig) error {
 	apiURL := pokeAPIURL
-	if cfg.Previous != nil {
-		apiURL = *cfg.Previous
+
+	// Print an error letting the user know there are no previous locations yet
+	if cfg.Previous == nil {
+		fmt.Println("")
+		fmt.Println("There are no previous regions to display!")
+		fmt.Println("")
+		return nil
 	}
+
+	apiURL = *cfg.Previous
 	pokeMap, err := cfg.Client.ListMapLocations(apiURL)
 	if err != nil {
-		fmt.Println("There are no previous regions to display!")
 		return err
 	}
 
 	cfg.Next = pokeMap.Next
 	cfg.Previous = pokeMap.Previous
 
+	fmt.Println("")
 	for _, result := range pokeMap.Results {
 		fmt.Println(result.Name)
 	}
+	fmt.Println("")
 
 	return nil
 }
