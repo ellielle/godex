@@ -15,7 +15,7 @@ type cliCommand struct {
 func commandHelp(cfg *MapConfig, cmd []string) error {
 	fmt.Println("Usage:")
 	for _, command := range getCliCommands() {
-		fmt.Printf("\n%v:  %v", command.name, command.description)
+		fmt.Printf("\n%v:\t\t%v", command.name, command.description)
 	}
 	fmt.Print("\n\n")
 
@@ -47,24 +47,29 @@ func getCliCommands() map[string]cliCommand {
 			callback:    commandMap,
 		},
 		"mapb": {
-			name:        "map back",
+			name:        "mapb",
 			description: "shows the previous 20 regions",
 			callback:    commandMapBack,
 		},
 		"explore": {
-			name:        "explore map",
+			name:        "explore <map-name>",
 			description: "explores user-specified map",
 			callback:    commandExplore,
 		},
 		"catch": {
-			name:        "catch pokemon",
+			name:        "catch <pokemon>",
 			description: "catch a pokemon",
 			callback:    commandCatch,
 		},
 		"inspect": {
-			name:        "inspect pokemon",
+			name:        "inspect <pokemon>",
 			description: "inspect a pokemon's height, weight, stats and type(s)",
 			callback:    commandInspect,
+		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "view all pokemon in your pokedex",
+			callback:    commandPokedex,
 		},
 	}
 }
