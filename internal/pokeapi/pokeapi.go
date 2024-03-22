@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/ellielle/godex/internal/pokedex"
 )
 
 type LocationResponse struct {
@@ -63,7 +65,7 @@ func (c *Client) ListMapLocations(apiURL string) (LocationResponse, error) {
 		return LocationResponse{}, err
 	}
 
-	c.cache.Add(apiURL, dat)
+	c.cache.Add(apiURL, &dat)
 	return locationResp, nil
 }
 
@@ -101,6 +103,44 @@ func (c *Client) ListPokemon(apiURL string) (PokeResponse, error) {
 		return PokeResponse{}, err
 	}
 
-	c.cache.Add(apiURL, dat)
+	c.cache.Add(apiURL, &dat)
+	return pokeResp, nil
+}
+
+func (c *Client) PokemonData(apiURL string) (pokedex.Pokemon, error) {
+	pokeResp := pokedex.Pokemon{}
+
+	// Check for an entry in the cache before requesting
+	val, ok := c.cache.Get(apiURL)
+	if ok {
+		err := json.Unmarshal([]byte(val), &pokeResp)
+		if err != nil {
+			return pokedex.Pokemon{}, err
+		}
+		return pokeResp, nil
+	}
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return pokedex.Pokemon{}, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return pokedex.Pokemon{}, err
+	}
+	defer resp.Body.Close()
+
+	dat, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return pokedex.Pokemon{}, err
+	}
+
+	err = json.Unmarshal(dat, &pokeResp)
+	if err != nil {
+		return pokedex.Pokemon{}, err
+	}
+
+	c.cache.Add(apiURL, &dat)
 	return pokeResp, nil
 }
