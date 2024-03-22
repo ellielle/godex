@@ -7,7 +7,8 @@ import (
 	"strings"
 )
 
-const pokeAPIURL = "https://pokeapi.co/api/v2/location-area/"
+const locationAPIURL = "https://pokeapi.co/api/v2/location-area/"
+const pokemonAPIURL = "https://pokeapi.co/api/v2/pokemon/"
 
 // Start a REPL for the program to take user input
 func startREPL(cfg *MapConfig) {
